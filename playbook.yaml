@@ -3,7 +3,7 @@
   become: true
   roles:
 #  - role/mariadb
-  - role/nginx
+#  - role/nginx
 #  - role/phpmyadmin
 #  - role/postfix
-#  - role/php_settings
+  - role/php

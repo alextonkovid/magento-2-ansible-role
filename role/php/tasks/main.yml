@@ -1,0 +1,76 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Add PHP repository
+  apt_repository:
+    repo: ppa:ondrej/php
+    state: present
+
+- name: Install PHP 8.3 and extensions
+  apt:
+    name:
+    - php8.3
+    - php8.3-mysql
+    - php8.3-soap
+    - php8.3-bcmath
+    - php8.3-xml
+    - php8.3-mbstring
+    - php8.3-gd
+    - php8.3-common
+    - php8.3-cli
+    - php8.3-curl
+    - php8.3-intl
+    - php8.3-zip
+    - zip
+    - unzip
+    - php8.3-gettext
+    state: present
+    update_cache: true
+
+- name: Ensure php.ini file exists
+  ansible.builtin.file:
+    path: /etc/php/8.3/cli/php.ini
+    state: touch
+  become: yes
+
+- name: Update date.timezone in php.ini
+  ansible.builtin.lineinfile:
+    path: /etc/php/8.3/cli/php.ini
+    regexp: '^date.timezone ='
+    line: 'date.timezone = Europe/Warsaw'
+    state: present
+  become: yes
+
+- name: Update memory_limit in php.ini
+  ansible.builtin.lineinfile:
+    path: /etc/php/8.3/cli/php.ini
+    regexp: '^memory_limit ='
+    line: 'memory_limit = 4G'
+    state: present
+  become: yes
+
+- name: Update realpath_cache_size in php.ini
+  ansible.builtin.lineinfile:
+    path: /etc/php/8.3/cli/php.ini
+    regexp: '^realpath_cache_size ='
+    line: 'realpath_cache_size = 10M'
+    state: present
+  become: yes
+
+- name: Update realpath_cache_ttl in php.ini
+  ansible.builtin.lineinfile:
+    path: /etc/php/8.3/cli/php.ini
+    regexp: '^realpath_cache_ttl ='
+    line: 'realpath_cache_ttl = 7200'
+    state: present
+  become: yes
+
+- name: Notify PHP restart
+  ansible.builtin.meta: flush_handlers
+
+- name: Restart Ngix to apply changes
+  service:
+    name: nginx
+    state: restarted
