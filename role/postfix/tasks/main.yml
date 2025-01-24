@@ -1,0 +1,16 @@
+- name: Install Postfix
+  apt:
+    name: postfix
+    state: present
+
+- name: Configure Postfix for local delivery
+  lineinfile:
+    path: /etc/postfix/main.cf
+    regexp: '^myhostname'
+    line: 'myhostname = localhost'
+
+- name: Start and Enable Postfix Service
+  service:
+    name: postfix
+    state: started
+    enabled: yes

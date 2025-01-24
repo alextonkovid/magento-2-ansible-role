@@ -1,0 +1,4 @@
+- name: Ensure Composer is installed
+  apt:
+    name: composer
+    state: present

@@ -1,0 +1,36 @@
+---
+- name: Install Nginx
+  apt:
+   name: nginx
+   state: present
+
+- name: Remove existing directory if it exists
+  file:
+   path: /etc/nginx/sites-enabled/phpmyadmin
+   state: absent
+
+- name: Configure PHPMyAdmin to use Nginx
+  template:
+   src: templates/phpmyadmin.conf.j2
+   dest: /etc/nginx/sites-available/phpmyadmin
+  notify:
+   - restart nginx
+
+- name: Enable PHPMyAdmin site
+  file:
+   src: /etc/nginx/sites-available/phpmyadmin
+   dest: /etc/nginx/sites-enabled/phpmyadmin
+   state: link
+
+- name: Configure PHPMyAdmin database
+  mysql_user:
+   name: root
+   host: localhost
+   password: '01001'
+   priv: '*.*:ALL'
+   state: present
+
+- name: Import default configuration for phpmyadmin database
+  copy:
+   src: templates/config.inc.php.j2
+   dest: /etc/phpmyadmin/config.inc.php
