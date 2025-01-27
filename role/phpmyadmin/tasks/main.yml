@@ -1,36 +1,51 @@
 ---
-- name: Install Nginx
-  apt:
-   name: nginx
-   state: present
+- name: Download phpMyAdmin archive
+  ansible.builtin.get_url:
+    url: "{{ phpmyadmin_download_url }}"
+    dest: "/tmp/phpmyadmin.tar.gz"
+- name: Ensure phpMyAdmin user exists
+  ansible.builtin.user:
+    name: "{{ phpmyadmin_user }}"
+    group: "{{ phpmyadmin_group }}"
+    state: present
 
-- name: Remove existing directory if it exists
-  file:
-   path: /etc/nginx/sites-enabled/phpmyadmin
-   state: absent
+- name: Ensure phpMyAdmin directory exists
+  ansible.builtin.file:
+    path: "{{ phpmyadmin_install_dir }}"
+    state: directory
+    owner: "{{ phpmyadmin_user }}"
+    group: "{{ phpmyadmin_group }}"
+    mode: '0755'
 
-- name: Configure PHPMyAdmin to use Nginx
-  template:
-   src: templates/phpmyadmin.conf.j2
-   dest: /etc/nginx/sites-available/phpmyadmin
-  notify:
-   - restart nginx
+- name: Extract phpMyAdmin
+  ansible.builtin.unarchive:
+    src: "/tmp/phpmyadmin.tar.gz"
+    dest: "{{ phpmyadmin_install_dir }}"
+    remote_src: yes
+    extra_opts:
+    - --strip-components=1
 
-- name: Enable PHPMyAdmin site
-  file:
-   src: /etc/nginx/sites-available/phpmyadmin
-   dest: /etc/nginx/sites-enabled/phpmyadmin
-   state: link
+- name: Set permissions for phpMyAdmin directory
+  ansible.builtin.file:
+    path: "{{ phpmyadmin_install_dir }}"
+    state: directory
+    owner: "{{ phpmyadmin_user }}"
+    group: "{{ phpmyadmin_group }}"
+    mode: '0755'
 
-- name: Configure PHPMyAdmin database
-  mysql_user:
-   name: root
-   host: localhost
-   password: '01001'
-   priv: '*.*:ALL'
-   state: present
+- name: Configure Nginx for phpMyAdmin
+  ansible.builtin.template:
+    src: phpmyadmin.conf.j2
+    dest: "{{ phpmyadmin_nginx_conf }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart nginx
 
-- name: Import default configuration for phpmyadmin database
-  copy:
-   src: templates/config.inc.php.j2
-   dest: /etc/phpmyadmin/config.inc.php
+- name: Ensure phpMyAdmin can access MariaDB
+  ansible.builtin.lineinfile:
+    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    regexp: '^bind-address'
+    line: "bind-address = {{ phpmyadmin_mariadb_host }}"
+    backup: yes
+  notify: restart mariadb

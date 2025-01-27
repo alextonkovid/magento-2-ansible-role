@@ -2,8 +2,8 @@
 - hosts: all
   become: true
   roles:
-#  - role/mariadb
-#  - role/nginx
-#  - role/phpmyadmin
-#  - role/postfix
+  - role/mariadb
+  - role/nginx
+  - role/phpmyadmin
+  #  - role/postfix
   - role/php

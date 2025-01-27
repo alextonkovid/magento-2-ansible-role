@@ -1,8 +1,9 @@
 ---
-php_settings_version: "8.3"
-# roles/php_config/defaults/main.yml
-php_ini_path: /etc/php/8.3/apache2/php.ini
-php_date_timezone: "Europe/Warsaw"
-php_memory_limit: "4G"
-php_realpath_cache_size: "10M"
-php_realpath_cache_ttl: 7200
+php_settings_version: "8.2"
+phpmyadmin_version: "5.2.1"
+phpmyadmin_download_url: "https://files.phpmyadmin.net/phpMyAdmin/{{ phpmyadmin_version }}/phpMyAdmin-{{ phpmyadmin_version }}-all-languages.tar.gz"
+phpmyadmin_install_dir: /usr/share/phpmyadmin
+phpmyadmin_nginx_conf: /etc/nginx/conf.d/phpmyadmin.conf
+phpmyadmin_user: phpmyadmin
+phpmyadmin_group: www-data
+phpmyadmin_mariadb_host: "localhost"
