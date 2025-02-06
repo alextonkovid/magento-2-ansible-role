@@ -1,0 +1,7 @@
+---
+magento_install_dir: /var/www/html/magento2/
+magento_nginx_conf: /etc/nginx/conf.d/magento.conf
+magento_user: magento
+magento_group: www-data
+magento_mariadb_host: "localhost"
+php_settings_version: "8.2"

@@ -1,0 +1,17 @@
+upstream fastcgi_backend {
+  server  unix:/var/run/php/php{{ php_settings_version }}-fpm.sock;
+}
+server {
+    listen 80;
+    server_name dev.smart-textile.pl;
+				include /var/www/html/magento2/nginx.conf.sample;
+    set $MAGE_ROOT /var/www/html/magento2;
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php{{ php_settings_version }}-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+}

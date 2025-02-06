@@ -1,0 +1,59 @@
+- name: Ensure magento user exists
+  ansible.builtin.user:
+    name: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    state: present
+
+- name: Ensure magento directory exists
+  ansible.builtin.file:
+    path: "{{ magento_install_dir }}"
+    state: directory
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    mode: '0755'
+
+- name: Ensure the Magento directory is clean
+  ansible.builtin.file:
+    path: "{{ magento_install_dir }}"
+    state: absent
+
+- name: Recreate the Magento directory
+  ansible.builtin.file:
+    path: "{{ magento_install_dir }}"
+    state: directory
+    owner: magento
+    group: www-data
+    mode: '0755'
+
+- name: Extract Magento code
+  ansible.builtin.unarchive:
+    src: "/home/alex/Work/mgt-dev/1737057443_filesystem_code.tgz"
+    dest: "{{ magento_install_dir }}"
+    remote_src: false
+    extra_opts:
+    - --overwrite
+
+- name: Extract Magento media
+  ansible.builtin.unarchive:
+    src: "/home/alex/Work/mgt-dev/1737057443_filesystem_media.tgz"
+    dest: "{{ magento_install_dir }}"
+    remote_src: false
+    extra_opts:
+    - --overwrite
+
+- name: Set permissions for magento directory
+  ansible.builtin.file:
+    path: "{{ magento_install_dir }}"
+    state: directory
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    mode: '0755'
+
+- name: Configure Nginx for magento
+  ansible.builtin.template:
+    src: magento.conf.j2
+    dest: "{{ magento_nginx_conf }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart nginx

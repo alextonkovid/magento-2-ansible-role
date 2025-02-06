@@ -1,6 +1,6 @@
 ---
 mariadb_version: "10.5"
-mariadb_root_password: "01001"
+mariadb_root_password: "tguN4CxebUBduB"
 mariadb_username: "magento"
-mariadb_password: "01001"
+mariadb_password: "9FSakJc5lWznmG"
 mariadb_database: "magento"

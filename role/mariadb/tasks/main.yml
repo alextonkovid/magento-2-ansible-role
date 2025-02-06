@@ -1,85 +1,84 @@
 ---
 - name: Install required dependencies
   ansible.builtin.apt:
-   name: [ 'software-properties-common', 'gnupg', 'libmysqlclient-dev', 'pkg-config', 'curl' ]
-   state: present
-   update_cache: true
+    name: [ 'software-properties-common', 'gnupg', 'libmysqlclient-dev', 'pkg-config', 'curl' ]
+    state: present
+    update_cache: true
 - name: Add MariaDB APT key
   ansible.builtin.apt_key:
-   url: https://mariadb.org/mariadb_release_signing_key.asc
-   state: present
-   keyring: /usr/share/keyrings/mariadb-archive-keyring.gpg
+    url: https://mariadb.org/mariadb_release_signing_key.asc
+    state: present
+    keyring: /usr/share/keyrings/mariadb-archive-keyring.gpg
 
 - name: Add MariaDB APT repository
   ansible.builtin.apt_repository:
-   repo: "deb [arch=amd64,arm64,ppc64el signed-by=/usr/share/keyrings/mariadb-archive-keyring.gpg] https://mirror.mariadb.org/repo/10.6/ubuntu focal main"
-   state: present
-   filename: mariadb
+    repo: "deb [arch=amd64,arm64,ppc64el signed-by=/usr/share/keyrings/mariadb-archive-keyring.gpg] https://mirror.mariadb.org/repo/10.6/ubuntu focal main"
+    state: present
+    filename: mariadb
 
 - name: Update apt cache
   ansible.builtin.apt:
-   update_cache: true
+    update_cache: true
 
 - name: Ensure python3-mysqldb is installed
   ansible.builtin.apt:
-   name: python3-mysqldb
-   state: present
-   update_cache: true
+    name: python3-mysqldb
+    state: present
+    update_cache: true
 
 - name: Install MariaDB server
   ansible.builtin.apt:
-   name: mariadb-server
-   state: present
+    name: mariadb-server
+    state: present
 
 - name: Ensure MariaDB service is enabled and started
   ansible.builtin.service:
-   name: mariadb
-   state: started
-   enabled: true
+    name: mariadb
+    state: started
+    enabled: true
 
 - name: Copy MariaDB configuration file
   ansible.builtin.template:
-   src: my.cnf.j2
-   dest: ~/.my.cnf
-   owner: root
-   group: root
-   mode: '0644'
+    src: my.cnf.j2
+    dest: ~/.my.cnf
+    owner: root
+    group: root
+    mode: '0644'
   notify:
-   - restart mariadb
+  - restart mariadb
 
 - name: Secure MariaDB installation
   community.mysql.mysql_db:
-   check_implicit_admin: true
-   config_file: "/etc/mysql/my.cnf"
-   name: magento
-   login_user: root
-   login_password: "n<_789{vS216y"
-   # unsafe_login_password: true
-   state: present
+    check_implicit_admin: true
+    config_file: "/etc/mysql/my.cnf"
+    name: magento
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    state: present
 
 - name: Create a new magento user
   community.mysql.mysql_user:
-   name: magento
-   host: localhost
-   password: kofein01001
-   priv: 'magento.*:ALL,GRANT'
-   login_user: root
-   login_password: "n<_789{vS216y"
-   state: present
+    name: magento
+    host: localhost
+    password: " {{ mariadb_password }}"
+    priv: 'magento.*:ALL,GRANT'
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    state: present
 
 - name: Create a new admin user
   community.mysql.mysql_user:
-   name: kofein
-   host: localhost
-   password: kofein01001
-   login_user: root
-   login_password: "n<_789{vS216y"
-   priv: '*.*:ALL,GRANT'
-   state: present
+    name: kofein
+    host: localhost
+    password: " {{ mariadb_password }}"
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    priv: '*.*:ALL,GRANT'
+    state: present
 
 - name: Create a new database
   community.mysql.mysql_db:
-   name: magento
-   login_user: root
-   login_password: "n<_789{vS216y"
-   state: present
+    name: magento
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    state: present

@@ -8,65 +8,33 @@
     repo: ppa:ondrej/php
     state: present
 
-- name: Install PHP 8.3 and extensions
+- name: Install PHP {{ php_settings_version }} and extensions
   apt:
     name:
-    - php8.3
-    - php8.3-fpm
-    - php8.3-mysql
-    - php8.3-soap
-    - php8.3-bcmath
-    - php8.3-xml
-    - php8.3-mbstring
-    - php8.3-gd
-    - php8.3-common
-    - php8.3-cli
-    - php8.3-curl
-    - php8.3-intl
-    - php8.3-zip
+    - php{{ php_settings_version }}
+    - php{{ php_settings_version }}-fpm
+    - php{{ php_settings_version }}-mysql
+    - php{{ php_settings_version }}-soap
+    - php{{ php_settings_version }}-bcmath
+    - php{{ php_settings_version }}-xml
+    - php{{ php_settings_version }}-mbstring
+    - php{{ php_settings_version }}-gd
+    - php{{ php_settings_version }}-common
+    - php{{ php_settings_version }}-cli
+    - php{{ php_settings_version }}-curl
+    - php{{ php_settings_version }}-intl
+    - php{{ php_settings_version }}-zip
     - zip
     - unzip
-    - php8.3-gettext
+    - php{{ php_settings_version }}-gettext
     state: present
     update_cache: true
 
 - name: Ensure php.ini file exists
   ansible.builtin.file:
-    path: /etc/php/8.3/cli/php.ini
+    path: /etc/php/{{ php_settings_version }}/fpm/php.ini
     state: touch
-  become: yes
-
-- name: Update date.timezone in php.ini
-  ansible.builtin.lineinfile:
-    path: /etc/php/8.3/cli/php.ini
-    regexp: '^date.timezone ='
-    line: 'date.timezone = Europe/Warsaw'
-    state: present
-  become: yes
-
-- name: Update memory_limit in php.ini
-  ansible.builtin.lineinfile:
-    path: /etc/php/8.3/cli/php.ini
-    regexp: '^memory_limit ='
-    line: 'memory_limit = 4G'
-    state: present
-  become: yes
-
-- name: Update realpath_cache_size in php.ini
-  ansible.builtin.lineinfile:
-    path: /etc/php/8.3/cli/php.ini
-    regexp: '^realpath_cache_size ='
-    line: 'realpath_cache_size = 10M'
-    state: present
-  become: yes
-
-- name: Update realpath_cache_ttl in php.ini
-  ansible.builtin.lineinfile:
-    path: /etc/php/8.3/cli/php.ini
-    regexp: '^realpath_cache_ttl ='
-    line: 'realpath_cache_ttl = 7200'
-    state: present
-  become: yes
+  become: true
 
 - name: Notify PHP restart
   ansible.builtin.meta: flush_handlers

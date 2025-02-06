@@ -1,25 +1,46 @@
-- name: Install Elastic Repository
-  yum_repository:
-    name: elasticsearch
-    description: Elastic Package Repository for Elasticsearch
-    baseurl: https://artifacts.elastic.co/packages/8.x/apt stable main
-    enabled: yes
-    gpgcheck: yes
-    gpgkey: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+---
+- name: Install required packages
+  apt:
+    name:
+    - dirmngr
+    - ca-certificates
+    - software-properties-common
+    - apt-transport-https
+    - lsb-core
+    - curl
+    - wget
+    state: present
+    update_cache: yes
+
+- name: Download and add Elasticsearch GPG key
+  shell: "wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg"
+  args:
+    creates: /usr/share/keyrings/elasticsearch-keyring.gpg
+
+- name: Add Elasticsearch repository to sources.list.d
+  lineinfile:
+    path: /etc/apt/sources.list.d/elastic-8.x.list
+    line: "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main"
+    create: yes
+
+- name: Clear and update apt cache
+  shell: "rm -rf /var/lib/apt/lists/* && apt update"
 
 - name: Install Elasticsearch
   apt:
     name: elasticsearch
     state: present
 
-- name: Configure Elasticsearch
-  lineinfile:
+- name: Update xpack.security.enabled in elasticsearch.yml
+  ansible.builtin.lineinfile:
     path: /etc/elasticsearch/elasticsearch.yml
-    regexp: '^network.host'
-    line: 'network.host: 0.0.0.0'
+    regexp: '^xpack.security.enabled: true'
+    line: 'xpack.security.enabled: false'
+    state: present
+  become: true
 
-- name: Start and Enable Elasticsearch Service
-  service:
-    name: elasticsearch
+- name: Enable and start Elasticsearch service
+  systemd:
+    name: elasticsearch.service
+    enabled: true
     state: started
-    enabled: yes

@@ -1,17 +1,18 @@
 server {
     listen 8088;
     server_name phpmyadmin.local;
-
+				client_max_body_size 200M;
     root {{ phpmyadmin_install_dir }};
     index index.php;
 
     location / {
         try_files $uri $uri/ =404;
+								client_max_body_size 200M;
     }
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php{{ php_settings_version }}-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
     }

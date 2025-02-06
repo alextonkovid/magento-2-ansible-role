@@ -5,5 +5,8 @@
   - role/mariadb
   - role/nginx
   - role/phpmyadmin
-  #  - role/postfix
+  - role/postfix
   - role/php
+  - role/composer
+  - role/elasticsearch
+  - role/magento
