@@ -6,3 +6,5 @@ magento_group: www-data
 magento_mariadb_host: "localhost"
 php_settings_version: "8.2"
 site_address: "magento2.local"
+magento_media_backup_file: /tmp/magento_media_backup_file.tgz
+magento_code_backup_file: /tmp/magento_code_backup_file.tgz

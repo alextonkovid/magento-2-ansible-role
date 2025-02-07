@@ -3,7 +3,7 @@ upstream fastcgi_backend {
 }
 server {
     listen 80;
-    server_name dev.smart-textile.pl;
+    server_name {{ site_address }};
 				include /var/www/html/magento2/nginx.conf.sample;
     set $MAGE_ROOT /var/www/html/magento2;
 
