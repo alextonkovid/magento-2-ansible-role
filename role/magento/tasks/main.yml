@@ -27,7 +27,7 @@
 
 - name: Extract Magento code
   ansible.builtin.unarchive:
-    src: "/home/alex/Work/mgt-dev/1737057443_filesystem_code.tgz"
+    src: "/home/alex/Work/mgt-dev/htdocs/backups/1737026936_filesystem_code.tgz"
     dest: "{{ magento_install_dir }}"
     remote_src: false
     extra_opts:
@@ -35,7 +35,7 @@
 
 - name: Extract Magento media
   ansible.builtin.unarchive:
-    src: "/home/alex/Work/mgt-dev/1737057443_filesystem_media.tgz"
+    src: "/home/alex/Work/mgt-dev/htdocs/backups/1737026936_filesystem_media.tgz"
     dest: "{{ magento_install_dir }}"
     remote_src: false
     extra_opts:

@@ -70,7 +70,7 @@
   community.mysql.mysql_user:
     name: kofein
     host: localhost
-    password: " {{ mariadb_password }}"
+    password: "{{ mariadb_password }}"
     login_user: root
     login_password: "{{ mariadb_root_password }}"
     priv: '*.*:ALL,GRANT'

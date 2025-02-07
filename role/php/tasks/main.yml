@@ -36,8 +36,20 @@
     state: touch
   become: true
 
-- name: Notify PHP restart
-  ansible.builtin.meta: flush_handlers
+- name: Ensure PHP configuration directory exists
+  file:
+    path: "/etc/php/{{ php_settings_version }}/fpm"
+    state: directory
+    mode: '0755'
+
+- name: Upload PHP configuration file
+  template:
+    src: php.ini.j2
+    dest: "/etc/php/{{ php_settings_version }}/fpm/php.ini"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart PHP-FPM
 
 - name: Restart Ngix to apply changes
   service:
