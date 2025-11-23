@@ -1,0 +1,11 @@
+---
+composer_version: "2.7.7"
+composer_download_url: "https://getcomposer.org/download/{{ composer_version }}/composer.phar"
+composer_download_checksum: ""
+composer_install_path: /usr/local/bin/composer
+composer_owner: root
+composer_group: root
+composer_mode: '0755'
+composer_dependencies:
+  - php-cli
+  - unzip

@@ -1,0 +1,25 @@
+---
+elasticsearch_major_version: "8"
+elasticsearch_repo_url: "https://artifacts.elastic.co/packages/{{ elasticsearch_major_version }}.x/apt"
+elasticsearch_repo_suites:
+  - stable
+elasticsearch_repo_components:
+  - main
+elasticsearch_repo_name: "elastic-{{ elasticsearch_major_version }}.x"
+elasticsearch_repo_key_url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+elasticsearch_repo_key_path: /usr/share/keyrings/elasticsearch-keyring.gpg
+elasticsearch_prereq_packages:
+  - dirmngr
+  - ca-certificates
+  - software-properties-common
+  - apt-transport-https
+  - lsb-release
+  - curl
+  - wget
+elasticsearch_packages:
+  - elasticsearch
+elasticsearch_service_name: elasticsearch.service
+elasticsearch_config_path: /etc/elasticsearch/elasticsearch.yml
+elasticsearch_config_overrides:
+  - key: xpack.security.enabled
+    value: "false"

@@ -1,4 +1,14 @@
-- name: Ensure Composer is installed
-  apt:
-    name: composer
+- name: Install Composer dependencies
+  ansible.builtin.apt:
+    name: "{{ composer_dependencies }}"
     state: present
+    update_cache: true
+
+- name: Download Composer {{ composer_version }}
+  ansible.builtin.get_url:
+    url: "{{ composer_download_url }}"
+    dest: "{{ composer_install_path }}"
+    mode: "{{ composer_mode }}"
+    owner: "{{ composer_owner }}"
+    group: "{{ composer_group }}"
+    checksum: "{{ composer_download_checksum | default(omit) }}"

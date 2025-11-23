@@ -1,0 +1,26 @@
+---
+# Cache lifetime for apt metadata refresh
+bootstrap_apt_cache_valid_time: 3600
+
+# Baseline packages installed on every host during bootstrap
+bootstrap_packages:
+  - net-tools
+  - fail2ban
+  - ufw
+
+# Firewall management toggles
+bootstrap_manage_firewall: true
+bootstrap_firewall_default_policy: deny
+bootstrap_firewall_default_direction: incoming
+
+# TCP ports that must remain open when ufw is enabled
+bootstrap_firewall_allow_rules:
+  - port: "22"
+    proto: tcp
+    comment: Allow SSH
+  - port: "80"
+    proto: tcp
+    comment: Allow HTTP
+  - port: "443"
+    proto: tcp
+    comment: Allow HTTPS

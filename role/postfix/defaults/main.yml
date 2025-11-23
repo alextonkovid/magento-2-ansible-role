@@ -1,0 +1,10 @@
+---
+postfix_packages:
+  - postfix
+postfix_update_cache: true
+postfix_cache_valid_time: 3600
+postfix_service_name: postfix
+postfix_main_cf_path: /etc/postfix/main.cf
+postfix_main_cf_settings:
+  myhostname: localhost
+  inet_interfaces: loopback-only

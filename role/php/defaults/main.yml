@@ -1,0 +1,60 @@
+---
+php_version: "8.2"
+php_repository: ppa:ondrej/php
+php_repository_state: present
+php_repository_update_cache: true
+php_prereq_packages:
+  - software-properties-common
+php_packages:
+  - "php{{ php_version }}"
+  - "php{{ php_version }}-fpm"
+  - "php{{ php_version }}-mysql"
+  - "php{{ php_version }}-soap"
+  - "php{{ php_version }}-bcmath"
+  - "php{{ php_version }}-xml"
+  - "php{{ php_version }}-mbstring"
+  - "php{{ php_version }}-gd"
+  - "php{{ php_version }}-common"
+  - "php{{ php_version }}-cli"
+  - "php{{ php_version }}-curl"
+  - "php{{ php_version }}-intl"
+  - "php{{ php_version }}-zip"
+  - "php{{ php_version }}-gettext"
+  - zip
+  - unzip
+php_extra_packages: []
+
+php_fpm_service_name: "php{{ php_version }}-fpm"
+php_fpm_socket: "/var/run/php/php{{ php_version }}-fpm.sock"
+php_ini_path: "/etc/php/{{ php_version }}/fpm/php.ini"
+php_ini_settings:
+  - section: PHP
+    option: memory_limit
+    value: 4G
+  - section: PHP
+    option: max_execution_time
+    value: 180
+  - section: PHP
+    option: max_input_time
+    value: 120
+  - section: PHP
+    option: upload_max_filesize
+    value: 128M
+  - section: PHP
+    option: post_max_size
+    value: 128M
+  - section: PHP
+    option: realpath_cache_size
+    value: 10M
+  - section: PHP
+    option: realpath_cache_ttl
+    value: 7200
+  - section: PHP
+    option: expose_php
+    value: 'Off'
+  - section: PHP
+    option: zlib.output_compression
+    value: 'On'
+  - section: Date
+    option: date.timezone
+    value: UTC

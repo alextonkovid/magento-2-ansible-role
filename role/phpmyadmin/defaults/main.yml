@@ -1,0 +1,28 @@
+---
+phpmyadmin_version: "5.2.2"
+phpmyadmin_download_base_url: https://files.phpmyadmin.net/phpMyAdmin
+phpmyadmin_download_url: "{{ phpmyadmin_download_base_url }}/{{ phpmyadmin_version }}/phpMyAdmin-{{ phpmyadmin_version }}-all-languages.tar.gz"
+phpmyadmin_download_checksum: ""
+phpmyadmin_archive_path: "/tmp/phpmyadmin-{{ phpmyadmin_version }}.tar.gz"
+phpmyadmin_install_dir: /usr/share/phpmyadmin
+phpmyadmin_directory_mode: '0755'
+phpmyadmin_cleanup_archive: true
+
+phpmyadmin_user: phpmyadmin
+phpmyadmin_group: www-data
+phpmyadmin_user_shell: /usr/sbin/nologin
+
+phpmyadmin_nginx_conf: /etc/nginx/conf.d/phpmyadmin.conf
+phpmyadmin_nginx_template: phpmyadmin.conf.j2
+phpmyadmin_nginx_listen: 8088
+phpmyadmin_server_name: phpmyadmin.local
+phpmyadmin_client_max_body_size: 200M
+phpmyadmin_php_fpm_socket: "{{ php_fpm_socket | default('/var/run/php/php8.2-fpm.sock') }}"
+
+phpmyadmin_required_packages:
+  - tar
+  - gzip
+
+phpmyadmin_manage_mariadb_bind: true
+phpmyadmin_mariadb_host: 127.0.0.1
+phpmyadmin_mariadb_config: /etc/mysql/mariadb.conf.d/50-server.cnf

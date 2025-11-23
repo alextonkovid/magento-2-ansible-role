@@ -1,5 +1,5 @@
 
-# **Ansible Playbook for Magento 2 Ubuntu 20.04 Setup**
+# **Ansible Playbook for Magento 2 Ubuntu 22.04.3 Setup**
 
 ## **Overview**
 This Ansible playbook automates the installation and configuration of essential services and software on an Ubuntu 20.04 server, including:

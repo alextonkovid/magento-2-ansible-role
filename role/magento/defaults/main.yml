@@ -1,0 +1,25 @@
+---
+magento_install_dir: /var/www/html/magento2
+magento_nginx_conf: /etc/nginx/conf.d/magento.conf
+magento_nginx_template: magento.conf.j2
+magento_server_name: dev.eltex.design
+magento_listen_port: 80
+magento_user: magento
+magento_group: magento
+magento_additional_groups:
+  - www-data
+magento_system_users_to_join_group:
+  - www-data
+magento_create_group: true
+magento_code_backup_file: ""
+magento_media_backup_file: ""
+magento_code_archive_remote: false
+magento_media_archive_remote: false
+magento_code_archive_creates: "{{ magento_install_dir }}/app/etc/env.php"
+magento_media_archive_creates: "{{ magento_install_dir }}/pub/media"
+magento_group_writable_dirs:
+  - "{{ magento_install_dir }}/var"
+  - "{{ magento_install_dir }}/pub"
+  - "{{ magento_install_dir }}/app/etc"
+magento_recursive_mode: 'u=rwX,g=rX,o=rX'
+magento_php_fpm_socket: "{{ php_fpm_socket | default('/var/run/php/php8.2-fpm.sock') }}"

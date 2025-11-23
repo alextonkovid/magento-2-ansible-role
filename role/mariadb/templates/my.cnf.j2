@@ -1,56 +1,34 @@
-# Default MariaDB configuration file for version 10.6
-# Adjust settings as needed.
-
+#
+# Managed by Ansible – override via `mariadb_additional_config` or extend this template.
+#
 [client]
-# Client-side settings
-port            = 3306
-socket          = /run/mysqld/mysqld.sock
+port = 3306
+socket = {{ mariadb_socket }}
 default-character-set = utf8mb4
-user=root
-password={{ mariadb_root_password }}
 
 [mysqld]
-# General Settings
+bind-address = {{ mariadb_bind_address }}
+socket = {{ mariadb_socket }}
 long_query_time = 1
-max_allowed_packet = 16M
-
-# InnoDB Settings
+max_allowed_packet = 64M
 innodb_buffer_pool_size = 4G
 innodb_flush_log_at_trx_commit = 2
 innodb_autoextend_increment = 512
-
-# Thread and Cache Settings
 thread_cache_size = 32
-table_cache = 1024
-query_cache_size = 64M
-query_cache_limit = 2M
-
-# Buffer Settings
-join_buffer_size = 8M
+table_open_cache = 1024
 tmp_table_size = 256M
 max_heap_table_size = 256M
 read_buffer_size = 2M
 read_rnd_buffer_size = 16M
 bulk_insert_buffer_size = 64M
-
-# MyISAM Settings
-key_buffer = 32M
-myisam_sort_buffer_size = 128M
-myisam_max_sort_file_size = 10G
-myisam_repair_threads = 1
-
-# Logging and Performance Monitoring
 log_error = /var/log/mariadb/mariadb-error.log
 slow_query_log = 1
 slow_query_log_file = /var/log/mariadb/mariadb-slow.log
-
-# Additional Performance Options
 skip_name_resolve = 1
-query_cache_type = 1
-
-[client]
-default-character-set = utf8mb4
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+{{ mariadb_additional_config }}
 
 [mysqldump]
 quick
-max_allowed_packet = 16M
+max_allowed_packet = 64M

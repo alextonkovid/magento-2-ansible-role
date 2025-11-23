@@ -1,46 +1,44 @@
 ---
-- name: Install required packages
-  apt:
-    name:
-    - dirmngr
-    - ca-certificates
-    - software-properties-common
-    - apt-transport-https
-    - lsb-core
-    - curl
-    - wget
+- name: Install Elasticsearch prerequisites
+  ansible.builtin.apt:
+    name: "{{ elasticsearch_prereq_packages }}"
     state: present
-    update_cache: yes
+    update_cache: true
 
-- name: Download and add Elasticsearch GPG key
-  shell: "wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg"
-  args:
-    creates: /usr/share/keyrings/elasticsearch-keyring.gpg
+- name: Download Elasticsearch repository key
+  ansible.builtin.get_url:
+    url: "{{ elasticsearch_repo_key_url }}"
+    dest: "{{ elasticsearch_repo_key_path }}"
+    mode: '0644'
 
-- name: Add Elasticsearch repository to sources.list.d
-  lineinfile:
-    path: /etc/apt/sources.list.d/elastic-8.x.list
-    line: "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main"
-    create: yes
-
-- name: Clear and update apt cache
-  shell: "rm -rf /var/lib/apt/lists/* && apt update"
-
-- name: Install Elasticsearch
-  apt:
-    name: elasticsearch
+- name: Configure Elasticsearch repository
+  ansible.builtin.deb822_repository:
+    name: "{{ elasticsearch_repo_name }}"
+    types: deb
+    uris: "{{ elasticsearch_repo_url }}"
+    suites: "{{ elasticsearch_repo_suites }}"
+    components: "{{ elasticsearch_repo_components }}"
+    signed_by: "{{ elasticsearch_repo_key_path }}"
     state: present
 
-- name: Update xpack.security.enabled in elasticsearch.yml
+- name: Install Elasticsearch packages
+  ansible.builtin.apt:
+    name: "{{ elasticsearch_packages }}"
+    state: present
+    update_cache: true
+
+- name: Apply elasticsearch.yml overrides
   ansible.builtin.lineinfile:
-    path: /etc/elasticsearch/elasticsearch.yml
-    regexp: '^xpack.security.enabled: true'
-    line: 'xpack.security.enabled: false'
+    path: "{{ elasticsearch_config_path }}"
+    regexp: "^{{ item.key | regex_escape() }}:"
+    line: "{{ item.key }}: {{ item.value }}"
     state: present
-  become: true
+    backup: true
+  loop: "{{ elasticsearch_config_overrides }}"
+  notify: restart elasticsearch
 
-- name: Enable and start Elasticsearch service
-  systemd:
-    name: elasticsearch.service
+- name: Ensure Elasticsearch service is enabled and running
+  ansible.builtin.systemd:
+    name: "{{ elasticsearch_service_name }}"
     enabled: true
     state: started

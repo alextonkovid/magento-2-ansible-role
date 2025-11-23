@@ -1,0 +1,67 @@
+---
+# Base repo / package configuration
+mariadb_version: "10.6"
+mariadb_repo_url: "https://mirror.mariadb.org/repo/{{ mariadb_version }}/ubuntu"
+mariadb_repo_suite: "{{ ansible_distribution_release | default('jammy') }}"
+mariadb_repo_components:
+  - main
+mariadb_repo_architectures:
+  - amd64
+  - arm64
+  - ppc64el
+mariadb_repo_key_url: https://mariadb.org/mariadb_release_signing_key.asc
+mariadb_repo_key_path: /usr/share/keyrings/mariadb-archive-keyring.gpg
+mariadb_repo_name: mariadb
+mariadb_apt_cache_valid_time: 3600
+
+mariadb_prereq_packages:
+  - software-properties-common
+  - gnupg
+  - libmysqlclient-dev
+  - pkg-config
+  - curl
+  - python3-mysqldb
+
+mariadb_packages:
+  - mariadb-server
+
+mariadb_service_name: mariadb
+mariadb_socket: /var/run/mysqld/mysqld.sock
+mariadb_config_file: /etc/mysql/mariadb.conf.d/99-custom.cnf
+mariadb_config_template: my.cnf.j2
+mariadb_bind_address: 127.0.0.1
+mariadb_additional_config: ""
+
+# Database / credential defaults – override via inventory or (preferably) Ansible Vault
+mariadb_database: magento
+mariadb_username: magento
+mariadb_user_password: ""
+mariadb_root_password: ""
+mariadb_app_host: localhost
+mariadb_root_hosts:
+  - localhost
+
+mariadb_databases:
+  - name: "{{ mariadb_database }}"
+    encoding: utf8mb4
+    collation: utf8mb4_unicode_ci
+
+mariadb_users:
+  - name: "{{ mariadb_username }}"
+    host: "{{ mariadb_app_host }}"
+    password: "{{ mariadb_user_password }}"
+    priv: "{{ mariadb_database }}.*:ALL,GRANT"
+
+mariadb_additional_users: []
+
+mariadb_manage_admin_user: false
+mariadb_admin_user: admin
+mariadb_admin_password: ""
+mariadb_admin_host: localhost
+mariadb_admin_priv: "*.*:ALL,GRANT"
+mariadb_admin_account:
+  name: "{{ mariadb_admin_user }}"
+  host: "{{ mariadb_admin_host }}"
+  password: "{{ mariadb_admin_password }}"
+  priv: "{{ mariadb_admin_priv }}"
+  state: present

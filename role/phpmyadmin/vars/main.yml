@@ -1,8 +1,0 @@
----
-phpmyadmin_version: "5.2.2"
-phpmyadmin_download_url: "https://files.phpmyadmin.net/phpMyAdmin/{{ phpmyadmin_version }}/phpMyAdmin-{{ phpmyadmin_version }}-all-languages.tar.gz"
-phpmyadmin_install_dir: /usr/share/phpmyadmin
-phpmyadmin_nginx_conf: /etc/nginx/conf.d/phpmyadmin.conf
-phpmyadmin_user: phpmyadmin
-phpmyadmin_group: www-data
-phpmyadmin_mariadb_host: "localhost"

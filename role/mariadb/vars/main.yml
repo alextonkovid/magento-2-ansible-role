@@ -1,6 +1,0 @@
----
-mariadb_version: "10.5"
-mariadb_root_password: "your_password"
-mariadb_username: "magento"
-mariadb_password: "your_password"
-mariadb_database: "magento"

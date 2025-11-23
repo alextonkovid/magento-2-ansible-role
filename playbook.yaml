@@ -2,6 +2,7 @@
 - hosts: all
   become: true
   roles:
+  - role/bootstrap
   - role/mariadb
   - role/nginx
   - role/phpmyadmin

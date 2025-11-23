@@ -1,84 +1,101 @@
----
-- name: Install required dependencies
+- name: Ensure MariaDB credentials are provided
+  ansible.builtin.assert:
+    that:
+      - mariadb_root_password | length > 0
+      - mariadb_user_password | length > 0
+    fail_msg: >
+      MariaDB root/application passwords must be supplied (store them securely via Ansible Vault).
+
+- name: Validate admin credentials when requested
+  ansible.builtin.assert:
+    that:
+      - mariadb_admin_password | length > 0
+    fail_msg: >
+      Set `mariadb_admin_password` (ideally via Vault) before enabling `mariadb_manage_admin_user`.
+  when: mariadb_manage_admin_user | bool
+
+- name: Install MariaDB prerequisites
   ansible.builtin.apt:
-    name: [ 'software-properties-common', 'gnupg', 'libmysqlclient-dev', 'pkg-config', 'curl' ]
+    name: "{{ mariadb_prereq_packages }}"
     state: present
     update_cache: true
-- name: Add MariaDB APT key
-  ansible.builtin.apt_key:
-    url: https://mariadb.org/mariadb_release_signing_key.asc
-    state: present
-    keyring: /usr/share/keyrings/mariadb-archive-keyring.gpg
+    cache_valid_time: "{{ mariadb_apt_cache_valid_time }}"
 
-- name: Add MariaDB APT repository
-  ansible.builtin.apt_repository:
-    repo: "deb [arch=amd64,arm64,ppc64el signed-by=/usr/share/keyrings/mariadb-archive-keyring.gpg] https://mirror.mariadb.org/repo/10.6/ubuntu focal main"
-    state: present
-    filename: mariadb
+- name: Download MariaDB repository key
+  ansible.builtin.get_url:
+    url: "{{ mariadb_repo_key_url }}"
+    dest: "{{ mariadb_repo_key_path }}"
+    mode: '0644'
 
-- name: Update apt cache
+- name: Configure MariaDB repository
+  ansible.builtin.deb822_repository:
+    name: "{{ mariadb_repo_name }}"
+    types: deb
+    uris: "{{ mariadb_repo_url }}"
+    suites: "{{ mariadb_repo_suite }}"
+    components: "{{ mariadb_repo_components }}"
+    architectures: "{{ mariadb_repo_architectures }}"
+    signed_by: "{{ mariadb_repo_key_path }}"
+    state: present
+
+- name: Install MariaDB packages
   ansible.builtin.apt:
+    name: "{{ mariadb_packages }}"
+    state: present
     update_cache: true
 
-- name: Ensure python3-mysqldb is installed
-  ansible.builtin.apt:
-    name: python3-mysqldb
-    state: present
-    update_cache: true
-
-- name: Install MariaDB server
-  ansible.builtin.apt:
-    name: mariadb-server
-    state: present
-
-- name: Ensure MariaDB service is enabled and started
-  ansible.builtin.service:
-    name: mariadb
-    state: started
-    enabled: true
-
-- name: Copy MariaDB configuration file
+- name: Deploy MariaDB configuration override
   ansible.builtin.template:
-    src: my.cnf.j2
-    dest: ~/.my.cnf
+    src: "{{ mariadb_config_template }}"
+    dest: "{{ mariadb_config_file }}"
     owner: root
     group: root
     mode: '0644'
-  notify:
-  - restart mariadb
+  notify: restart mariadb
 
-- name: Secure MariaDB installation
+- name: Ensure MariaDB service is enabled and started
+  ansible.builtin.service:
+    name: "{{ mariadb_service_name }}"
+    state: started
+    enabled: true
+
+- name: Create required MariaDB databases
   community.mysql.mysql_db:
+    name: "{{ item.name }}"
+    state: present
+    encoding: "{{ item.encoding | default(omit) }}"
+    collation: "{{ item.collation | default(omit) }}"
+    login_user: root
+    login_unix_socket: "{{ mariadb_socket }}"
+  loop: "{{ mariadb_databases }}"
+
+- name: Configure MariaDB root password for allowed hosts
+  community.mysql.mysql_user:
+    name: root
+    host: "{{ item }}"
+    password: "{{ mariadb_root_password }}"
+    login_user: root
+    login_unix_socket: "{{ mariadb_socket }}"
     check_implicit_admin: true
-    config_file: "/etc/mysql/my.cnf"
-    name: magento
-    login_user: root
-    login_password: "{{ mariadb_root_password }}"
     state: present
+  loop: "{{ mariadb_root_hosts }}"
+  no_log: true
 
-- name: Create a new magento user
+- name: Create MariaDB user accounts
   community.mysql.mysql_user:
-    name: magento
-    host: localhost
-    password: " {{ mariadb_password }}"
-    priv: 'magento.*:ALL,GRANT'
+    name: "{{ item.name }}"
+    host: "{{ item.host | default('localhost') }}"
+    password: "{{ item.password }}"
+    priv: "{{ item.priv | default(omit) }}"
     login_user: root
-    login_password: "{{ mariadb_root_password }}"
-    state: present
-
-- name: Create a new admin user
-  community.mysql.mysql_user:
-    name: kofein
-    host: localhost
-    password: "{{ mariadb_password }}"
-    login_user: root
-    login_password: "{{ mariadb_root_password }}"
-    priv: '*.*:ALL,GRANT'
-    state: present
-
-- name: Create a new database
-  community.mysql.mysql_db:
-    name: magento
-    login_user: root
-    login_password: "{{ mariadb_root_password }}"
-    state: present
+    login_unix_socket: "{{ mariadb_socket }}"
+    state: "{{ item.state | default('present') }}"
+  loop: >-
+    {{
+      mariadb_users
+      + (mariadb_manage_admin_user | bool | ternary([mariadb_admin_account], []))
+      + mariadb_additional_users
+    }}
+  loop_control:
+    label: "{{ item.name }}@{{ item.host | default('localhost') }}"
+  no_log: true

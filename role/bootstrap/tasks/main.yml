@@ -1,0 +1,44 @@
+- name: Refresh apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: "{{ bootstrap_apt_cache_valid_time }}"
+
+- name: Install bootstrap packages
+  ansible.builtin.apt:
+    name: "{{ bootstrap_packages }}"
+    state: present
+
+- name: Ensure fail2ban is running and enabled
+  ansible.builtin.service:
+    name: fail2ban
+    state: started
+    enabled: true
+  when: "'fail2ban' in bootstrap_packages"
+
+- name: Allow inbound traffic required by the role
+  ansible.builtin.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto | default('tcp') }}"
+    comment: "{{ item.comment | default('Allow port ' ~ item.port) }}"
+  loop: "{{ bootstrap_firewall_allow_rules }}"
+  loop_control:
+    label: "{{ item.comment | default(item.port) }}"
+  when:
+    - bootstrap_manage_firewall | bool
+    - "'ufw' in bootstrap_packages"
+
+- name: Configure ufw default policy
+  ansible.builtin.ufw:
+    policy: "{{ bootstrap_firewall_default_policy }}"
+    direction: "{{ bootstrap_firewall_default_direction }}"
+  when:
+    - bootstrap_manage_firewall | bool
+    - "'ufw' in bootstrap_packages"
+
+- name: Ensure ufw is enabled
+  ansible.builtin.ufw:
+    state: enabled
+  when:
+    - bootstrap_manage_firewall | bool
+    - "'ufw' in bootstrap_packages"

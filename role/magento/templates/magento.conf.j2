@@ -1,17 +1,17 @@
 upstream fastcgi_backend {
-  server  unix:/var/run/php/php{{ php_settings_version }}-fpm.sock;
+    server unix:{{ magento_php_fpm_socket }};
 }
+
 server {
-    listen 80;
-    server_name {{ site_address }};
-				include /var/www/html/magento2/nginx.conf.sample;
-    set $MAGE_ROOT /var/www/html/magento2;
+    listen {{ magento_listen_port }};
+    server_name {{ magento_server_name }};
+    set $MAGE_ROOT {{ magento_install_dir }};
+    include {{ magento_install_dir }}/nginx.conf.sample;
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php{{ php_settings_version }}-fpm.sock;
+        fastcgi_pass unix:{{ magento_php_fpm_socket }};
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
     }
-
 }

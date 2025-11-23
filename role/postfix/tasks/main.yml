@@ -1,16 +1,22 @@
-- name: Install Postfix
-  apt:
-    name: postfix
+- name: Install Postfix packages
+  ansible.builtin.apt:
+    name: "{{ postfix_packages }}"
     state: present
+    update_cache: "{{ postfix_update_cache }}"
+    cache_valid_time: "{{ postfix_cache_valid_time }}"
 
-- name: Configure Postfix for local delivery
-  lineinfile:
-    path: /etc/postfix/main.cf
-    regexp: '^myhostname'
-    line: 'myhostname = localhost'
+- name: Configure Postfix main.cf
+  ansible.builtin.lineinfile:
+    path: "{{ postfix_main_cf_path }}"
+    regexp: "^{{ item.key }}\\s*="
+    line: "{{ item.key }} = {{ item.value }}"
+    create: true
+    backup: true
+  loop: "{{ postfix_main_cf_settings | dict2items }}"
+  notify: restart postfix
 
-- name: Start and Enable Postfix Service
-  service:
-    name: postfix
+- name: Ensure Postfix service is enabled and running
+  ansible.builtin.service:
+    name: "{{ postfix_service_name }}"
     state: started
-    enabled: yes
+    enabled: true

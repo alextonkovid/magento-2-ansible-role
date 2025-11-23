@@ -1,59 +1,89 @@
-- name: Ensure magento user exists
+- name: Ensure Magento group exists
+  ansible.builtin.group:
+    name: "{{ magento_group }}"
+    state: present
+
+- name: Ensure Magento user exists
   ansible.builtin.user:
-   name: "{{ magento_user }}"
-   group: "{{ magento_group }}"
-   state: present
+    name: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    state: present
 
-- name: Ensure magento directory exists
+- name: Add Magento user to supplemental groups
+  ansible.builtin.user:
+    name: "{{ magento_user }}"
+    groups: "{{ magento_additional_groups | join(',') }}"
+    append: true
+    state: present
+  when: magento_additional_groups | length > 0
+
+- name: Ensure system users are members of the Magento group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: "{{ magento_group }}"
+    append: true
+    state: present
+  loop: "{{ magento_system_users_to_join_group }}"
+
+- name: Ensure Magento directory exists with correct ownership
   ansible.builtin.file:
-   path: "{{ magento_install_dir }}"
-   state: directory
-   owner: "{{ magento_user }}"
-   group: "{{ magento_group }}"
-   mode: '0755'
+    path: "{{ magento_install_dir }}"
+    state: directory
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    mode: '0755'
 
-- name: Ensure the Magento directory is clean
-  ansible.builtin.file:
-   path: "{{ magento_install_dir }}"
-   state: absent
-
-- name: Recreate the Magento directory
-  ansible.builtin.file:
-   path: "{{ magento_install_dir }}"
-   state: directory
-   owner: magento
-   group: www-data
-   mode: '0755'
-
-- name: Extract Magento code
+- name: Deploy Magento code archive
   ansible.builtin.unarchive:
-   src: "{{ magento_code_backup_file }}"
-   dest: "{{ magento_install_dir }}"
-   remote_src: false
-   extra_opts:
-    - --overwrite
+    src: "{{ magento_code_backup_file }}"
+    dest: "{{ magento_install_dir }}"
+    remote_src: "{{ magento_code_archive_remote | bool }}"
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    creates: "{{ magento_code_archive_creates }}"
+  when: magento_code_backup_file | length > 0
 
-- name: Extract Magento media
+- name: Deploy Magento media archive
   ansible.builtin.unarchive:
-   src: "{{ magento_media_backup_file }}"
-   dest: "{{ magento_install_dir }}"
-   remote_src: false
-   extra_opts:
-    - --overwrite
+    src: "{{ magento_media_backup_file }}"
+    dest: "{{ magento_install_dir }}"
+    remote_src: "{{ magento_media_archive_remote | bool }}"
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    creates: "{{ magento_media_archive_creates }}"
+  when: magento_media_backup_file | length > 0
 
-- name: Set permissions for magento directory
+- name: Gather Magento installation facts
+  ansible.builtin.stat:
+    path: "{{ magento_install_dir }}"
+  register: magento_install_dir_stat
+
+- name: Set baseline Magento permissions
   ansible.builtin.file:
-   path: "{{ magento_install_dir }}"
-   state: directory
-   owner: "{{ magento_user }}"
-   group: "{{ magento_group }}"
-   mode: '0755'
+    path: "{{ magento_install_dir }}"
+    state: directory
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    recurse: true
+    mode: "{{ magento_recursive_mode }}"
+  when: magento_install_dir_stat.stat.exists
 
-- name: Configure Nginx for magento
+- name: Ensure writeable directories have group access
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ magento_user }}"
+    group: "{{ magento_group }}"
+    mode: '0775'
+    recurse: true
+  loop: "{{ magento_group_writable_dirs }}"
+  when: magento_install_dir_stat.stat.exists
+
+- name: Configure Nginx for Magento
   ansible.builtin.template:
-   src: magento.conf.j2
-   dest: "{{ magento_nginx_conf }}"
-   owner: root
-   group: root
-   mode: '0644'
+    src: "{{ magento_nginx_template }}"
+    dest: "{{ magento_nginx_conf }}"
+    owner: root
+    group: root
+    mode: '0644'
   notify: restart nginx

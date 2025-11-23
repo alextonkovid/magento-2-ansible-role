@@ -1,0 +1,6 @@
+---
+nginx_packages:
+  - nginx
+nginx_update_cache: true
+nginx_cache_valid_time: 3600
+nginx_service_name: nginx
